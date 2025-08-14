@@ -1,0 +1,75 @@
+{
+  "common": {
+    "login": "Login",
+    "logout": "Logout",
+    "email": "Email",
+    "password": "Password",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success"
+  },
+  "auth": {
+    "signIn": "Sign In",
+    "signInWithGoogle": "Sign in with Google",
+    "emailPlaceholder": "Enter your email",
+    "passwordPlaceholder": "Enter your password",
+    "welcomeBack": "Welcome back to Calypso",
+    "loginSubtitle": "Access your streaming portal"
+  },
+  "navigation": {
+    "home": "Home",
+    "configurations": "Configurations",
+    "teams": "Teams"
+  },
+  "home": {
+    "title": "Dashboard",
+    "totalStreamTime": "Total Stream Time",
+    "lastStreamTime": "Last Stream Time",
+    "totalRecordingTime": "Total Recording Time",
+    "lastRecordingTime": "Last Recording Time",
+    "numberOfTeams": "Number of Teams",
+    "lastStreamConfig": "Last Stream Configuration",
+    "rtmpUrl": "RTMP URL",
+    "fps": "FPS",
+    "resolution": "Resolution",
+    "bitrate": "Bitrate"
+  },
+  "configurations": {
+    "title": "Stream Configurations",
+    "addProfile": "Add Profile",
+    "editProfile": "Edit Profile",
+    "deleteProfile": "Delete Profile",
+    "profileAlias": "Profile Alias",
+    "audioSettings": "Audio Settings",
+    "videoSettings": "Video Settings",
+    "recordSettings": "Record Settings",
+    "connections": "Connections",
+    "source": "Source",
+    "codec": "Codec",
+    "connectionAlias": "Connection Alias",
+    "streamKey": "Stream Key"
+  },
+  "teams": {
+    "title": "Teams",
+    "addTeam": "Add Team",
+    "editTeam": "Edit Team",
+    "deleteTeam": "Delete Team",
+    "teamName": "Team Name",
+    "teamAlias": "Team Alias",
+    "players": "Players",
+    "playerName": "Player Name",
+    "playerNumber": "Player Number",
+    "addPlayer": "Add Player",
+    "teamLogo": "Team Logo"
+  },
+  "settings": {
+    "darkMode": "Dark Mode",
+    "lightMode": "Light Mode",
+    "language": "Language"
+  }
+}

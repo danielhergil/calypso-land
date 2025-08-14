@@ -1,0 +1,75 @@
+{
+  "common": {
+    "login": "登录",
+    "logout": "登出",
+    "email": "邮箱",
+    "password": "密码",
+    "save": "保存",
+    "cancel": "取消",
+    "delete": "删除",
+    "edit": "编辑",
+    "add": "添加",
+    "loading": "加载中...",
+    "error": "错误",
+    "success": "成功"
+  },
+  "auth": {
+    "signIn": "登录",
+    "signInWithGoogle": "使用Google登录",
+    "emailPlaceholder": "输入您的邮箱",
+    "passwordPlaceholder": "输入您的密码",
+    "welcomeBack": "欢迎回到Calypso",
+    "loginSubtitle": "访问您的流媒体门户"
+  },
+  "navigation": {
+    "home": "首页",
+    "configurations": "配置",
+    "teams": "团队"
+  },
+  "home": {
+    "title": "仪表板",
+    "totalStreamTime": "总流媒体时间",
+    "lastStreamTime": "最后流媒体时间",
+    "totalRecordingTime": "总录制时间",
+    "lastRecordingTime": "最后录制时间",
+    "numberOfTeams": "团队数量",
+    "lastStreamConfig": "最后流媒体配置",
+    "rtmpUrl": "RTMP URL",
+    "fps": "帧率",
+    "resolution": "分辨率",
+    "bitrate": "比特率"
+  },
+  "configurations": {
+    "title": "流媒体配置",
+    "addProfile": "添加配置文件",
+    "editProfile": "编辑配置文件",
+    "deleteProfile": "删除配置文件",
+    "profileAlias": "配置文件别名",
+    "audioSettings": "音频设置",
+    "videoSettings": "视频设置",
+    "recordSettings": "录制设置",
+    "connections": "连接",
+    "source": "源",
+    "codec": "编解码器",
+    "connectionAlias": "连接别名",
+    "streamKey": "流密钥"
+  },
+  "teams": {
+    "title": "团队",
+    "addTeam": "添加团队",
+    "editTeam": "编辑团队",
+    "deleteTeam": "删除团队",
+    "teamName": "团队名称",
+    "teamAlias": "团队别名",
+    "players": "球员",
+    "playerName": "球员姓名",
+    "playerNumber": "球员号码",
+    "addPlayer": "添加球员",
+    "teamLogo": "团队标志"
+  },
+  "settings": {
+    "darkMode": "深色模式",
+    "lightMode": "浅色模式",
+    "language": "语言"
+  }
+}

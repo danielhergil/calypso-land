@@ -1,0 +1,75 @@
+{
+  "common": {
+    "login": "Войти",
+    "logout": "Выйти",
+    "email": "Электронная почта",
+    "password": "Пароль",
+    "save": "Сохранить",
+    "cancel": "Отмена",
+    "delete": "Удалить",
+    "edit": "Редактировать",
+    "add": "Добавить",
+    "loading": "Загрузка...",
+    "error": "Ошибка",
+    "success": "Успех"
+  },
+  "auth": {
+    "signIn": "Войти",
+    "signInWithGoogle": "Войти через Google",
+    "emailPlaceholder": "Введите ваш email",
+    "passwordPlaceholder": "Введите ваш пароль",
+    "welcomeBack": "Добро пожаловать в Calypso",
+    "loginSubtitle": "Доступ к вашему порталу стриминга"
+  },
+  "navigation": {
+    "home": "Главная",
+    "configurations": "Конфигурации",
+    "teams": "Команды"
+  },
+  "home": {
+    "title": "Панель управления",
+    "totalStreamTime": "Общее время стрима",
+    "lastStreamTime": "Время последнего стрима",
+    "totalRecordingTime": "Общее время записи",
+    "lastRecordingTime": "Время последней записи",
+    "numberOfTeams": "Количество команд",
+    "lastStreamConfig": "Последняя конфигурация стрима",
+    "rtmpUrl": "RTMP URL",
+    "fps": "FPS",
+    "resolution": "Разрешение",
+    "bitrate": "Битрейт"
+  },
+  "configurations": {
+    "title": "Конфигурации стрима",
+    "addProfile": "Добавить профиль",
+    "editProfile": "Редактировать профиль",
+    "deleteProfile": "Удалить профиль",
+    "profileAlias": "Псевдоним профиля",
+    "audioSettings": "Настройки аудио",
+    "videoSettings": "Настройки видео",
+    "recordSettings": "Настройки записи",
+    "connections": "Соединения",
+    "source": "Источник",
+    "codec": "Кодек",
+    "connectionAlias": "Псевдоним соединения",
+    "streamKey": "Ключ стрима"
+  },
+  "teams": {
+    "title": "Команды",
+    "addTeam": "Добавить команду",
+    "editTeam": "Редактировать команду",
+    "deleteTeam": "Удалить команду",
+    "teamName": "Название команды",
+    "teamAlias": "Псевдоним команды",
+    "players": "Игроки",
+    "playerName": "Имя игрока",
+    "playerNumber": "Номер игрока",
+    "addPlayer": "Добавить игрока",
+    "teamLogo": "Логотип команды"
+  },
+  "settings": {
+    "darkMode": "Темный режим",
+    "lightMode": "Светлый режим",
+    "language": "Язык"
+  }
+}

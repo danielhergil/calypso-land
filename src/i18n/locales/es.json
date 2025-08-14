@@ -1,0 +1,75 @@
+{
+  "common": {
+    "login": "Iniciar Sesión",
+    "logout": "Cerrar Sesión",
+    "email": "Correo Electrónico",
+    "password": "Contraseña",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "add": "Añadir",
+    "loading": "Cargando...",
+    "error": "Error",
+    "success": "Éxito"
+  },
+  "auth": {
+    "signIn": "Iniciar Sesión",
+    "signInWithGoogle": "Iniciar sesión con Google",
+    "emailPlaceholder": "Ingresa tu correo electrónico",
+    "passwordPlaceholder": "Ingresa tu contraseña",
+    "welcomeBack": "Bienvenido de vuelta a Calypso",
+    "loginSubtitle": "Accede a tu portal de streaming"
+  },
+  "navigation": {
+    "home": "Inicio",
+    "configurations": "Configuraciones",
+    "teams": "Equipos"
+  },
+  "home": {
+    "title": "Panel de Control",
+    "totalStreamTime": "Tiempo Total de Stream",
+    "lastStreamTime": "Tiempo del Último Stream",
+    "totalRecordingTime": "Tiempo Total de Grabación",
+    "lastRecordingTime": "Tiempo de Última Grabación",
+    "numberOfTeams": "Número de Equipos",
+    "lastStreamConfig": "Última Configuración de Stream",
+    "rtmpUrl": "URL RTMP",
+    "fps": "FPS",
+    "resolution": "Resolución",
+    "bitrate": "Bitrate"
+  },
+  "configurations": {
+    "title": "Configuraciones de Stream",
+    "addProfile": "Añadir Perfil",
+    "editProfile": "Editar Perfil",
+    "deleteProfile": "Eliminar Perfil",
+    "profileAlias": "Alias del Perfil",
+    "audioSettings": "Configuración de Audio",
+    "videoSettings": "Configuración de Video",
+    "recordSettings": "Configuración de Grabación",
+    "connections": "Conexiones",
+    "source": "Fuente",
+    "codec": "Códec",
+    "connectionAlias": "Alias de Conexión",
+    "streamKey": "Clave de Stream"
+  },
+  "teams": {
+    "title": "Equipos",
+    "addTeam": "Añadir Equipo",
+    "editTeam": "Editar Equipo",
+    "deleteTeam": "Eliminar Equipo",
+    "teamName": "Nombre del Equipo",
+    "teamAlias": "Alias del Equipo",
+    "players": "Jugadores",
+    "playerName": "Nombre del Jugador",
+    "playerNumber": "Número del Jugador",
+    "addPlayer": "Añadir Jugador",
+    "teamLogo": "Logo del Equipo"
+  },
+  "settings": {
+    "darkMode": "Modo Oscuro",
+    "lightMode": "Modo Claro",
+    "language": "Idioma"
+  }
+}
