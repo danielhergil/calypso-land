@@ -1,25 +1,99 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Clock, Video, Users, Settings, Wifi, Monitor } from 'lucide-react';
 import { motion } from 'framer-motion';
 import MetricCard from '../components/Dashboard/MetricCard';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
+import { useAuth } from '../contexts/AuthContext';
+import { firestoreService } from '../firebase/services';
 
 const Dashboard: React.FC = () => {
   const { t } = useTranslation();
-
-  // Mock data - replace with real data from Firestore
-  const metrics = {
-    totalStreamTime: '24h 32m',
-    lastStreamTime: '2h 15m',
-    totalRecordingTime: '18h 45m',
-    lastRecordingTime: '1h 30m',
-    numberOfTeams: 5,
+  const { user } = useAuth();
+  const [metrics, setMetrics] = useState({
+    totalStreamTime: '0s',
+    lastStreamTime: '0s',
+    totalRecordingTime: '0s',
+    lastRecordingTime: '0s',
+    numberOfTeams: 0,
+    totalStreams: 0,
     lastStreamConfig: {
-      rtmpUrl: 'rtmp://a.rtmp.youtube.com/live2',
-      fps: 30,
-      resolution: '1080p',
-      bitrate: '15 Mbps'
+      rtmpUrl: '',
+      fps: 0,
+      resolution: '',
+      bitrate: ''
+    }
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadUserMetrics = async () => {
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const [userMetrics, userTeams, userProfiles] = await Promise.all([
+          firestoreService.getUserMetrics(user.uid),
+          firestoreService.getUserTeams(user.uid),
+          firestoreService.getUserProfiles(user.uid)
+        ]);
+
+        // Calculate metrics from user data
+        const streamMetrics = userMetrics.filter(m => m.action === 'stream');
+        const recordMetrics = userMetrics.filter(m => m.action === 'record');
+        
+        const totalStreamTime = streamMetrics.reduce((acc, m) => acc + m.use, 0);
+        const totalRecordTime = recordMetrics.reduce((acc, m) => acc + m.use, 0);
+        const totalStreams = streamMetrics.length;
+        
+        const lastStreamMetric = streamMetrics[0];
+        const lastRecordMetric = recordMetrics[0];
+
+        // Get last used profile for stream config
+        const lastProfile = userProfiles[0];
+
+        setMetrics({
+          totalStreamTime: formatTime(totalStreamTime),
+          lastStreamTime: lastStreamMetric ? formatTime(lastStreamMetric.use) : '0s',
+          totalRecordingTime: formatTime(totalRecordTime),
+          lastRecordingTime: lastRecordMetric ? formatTime(lastRecordMetric.use) : '0s',
+          numberOfTeams: userTeams.length,
+          totalStreams,
+          lastStreamConfig: lastProfile ? {
+            rtmpUrl: lastProfile.connections[0]?.rtmp_url || '',
+            fps: lastProfile.videoSettings.fps,
+            resolution: lastProfile.videoSettings.resolution,
+            bitrate: `${lastProfile.videoSettings.bitrateMbps} Mbps`
+          } : {
+            rtmpUrl: '',
+            fps: 0,
+            resolution: '',
+            bitrate: ''
+          }
+        });
+      } catch (error) {
+        console.error('Error loading user metrics');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadUserMetrics();
+  }, [user]);
+
+  const formatTime = (seconds: number): string => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const remainingSeconds = seconds % 60;
+    
+    if (hours > 0) {
+      return `${hours}h ${minutes}m`;
+    } else if (minutes > 0) {
+      return `${minutes}m ${remainingSeconds}s`;
+    } else {
+      return `${remainingSeconds}s`;
     }
   };
 
@@ -41,6 +115,27 @@ const Dashboard: React.FC = () => {
     { name: '16:00', bitrate: 14.9, fps: 30 },
     { name: '20:00', bitrate: 15.3, fps: 30 },
   ];
+
+  if (loading) {
+    return (
+      <div className="p-6 flex items-center justify-center min-h-96">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Loading your dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="p-6 flex items-center justify-center min-h-96">
+        <div className="text-center">
+          <p className="text-gray-600 dark:text-gray-400">Please log in to view your dashboard.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6">
@@ -95,8 +190,8 @@ const Dashboard: React.FC = () => {
           delay={0.5}
         />
         <MetricCard
-          title="Active Streams"
-          value="2"
+          title="Total Streams"
+          value={metrics.totalStreams}
           icon={Wifi}
           color="bg-gradient-to-r from-red-500 to-red-600"
           delay={0.6}
