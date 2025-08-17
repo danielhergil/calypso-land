@@ -24,7 +24,8 @@
   "navigation": {
     "home": "Accueil",
     "configurations": "Configurations",
-    "teams": "Équipes"
+    "teams": "Équipes",
+    "admin": "Administration"
   },
   "home": {
     "title": "Tableau de Bord",
@@ -71,5 +72,25 @@
     "darkMode": "Mode Sombre",
     "lightMode": "Mode Clair",
     "language": "Langue"
+  },
+  "admin": {
+    "title": "Panneau d'Administration",
+    "subtitle": "Gérer les utilisateurs et voir les métriques du système",
+    "metrics": {
+      "totalUsers": "Utilisateurs Totaux",
+      "totalStreamTime": "Temps Total de Stream (Tous les Utilisateurs)",
+      "totalRecordingTime": "Temps Total d'Enregistrement (Tous les Utilisateurs)",
+      "averageStreamTime": "Temps Moyen de Stream par Utilisateur"
+    },
+    "userManagement": {
+      "title": "Gestion des Utilisateurs",
+      "email": "Email",
+      "role": "Rôle",
+      "createdAt": "Date de Création",
+      "roles": {
+        "user": "Utilisateur",
+        "admin": "Administrateur"
+      }
+    }
   }
 }

@@ -1,18 +1,19 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Home, Settings, Users, LogOut } from 'lucide-react';
+import { Home, Settings, Users, LogOut, Shield } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { motion } from 'framer-motion';
 
 const Sidebar: React.FC = () => {
   const { t } = useTranslation();
-  const { logout } = useAuth();
+  const { logout, isAdmin } = useAuth();
 
   const navItems = [
     { path: '/', icon: Home, label: t('navigation.home') },
     { path: '/configurations', icon: Settings, label: t('navigation.configurations') },
     { path: '/teams', icon: Users, label: t('navigation.teams') },
+    ...(isAdmin ? [{ path: '/admin', icon: Shield, label: t('navigation.admin') }] : []),
   ];
 
   return (

@@ -24,7 +24,8 @@
   "navigation": {
     "home": "Home",
     "configurations": "Configurations",
-    "teams": "Teams"
+    "teams": "Teams",
+    "admin": "Admin"
   },
   "home": {
     "title": "Dashboard",
@@ -71,5 +72,25 @@
     "darkMode": "Dark Mode",
     "lightMode": "Light Mode",
     "language": "Language"
+  },
+  "admin": {
+    "title": "Admin Panel",
+    "subtitle": "Manage users and view system metrics",
+    "metrics": {
+      "totalUsers": "Total Users",
+      "totalStreamTime": "Total Stream Time (All Users)",
+      "totalRecordingTime": "Total Recording Time (All Users)",
+      "averageStreamTime": "Average Stream Time per User"
+    },
+    "userManagement": {
+      "title": "User Management",
+      "email": "Email",
+      "role": "Role",
+      "createdAt": "Created At",
+      "roles": {
+        "user": "User",
+        "admin": "Admin"
+      }
+    }
   }
 }

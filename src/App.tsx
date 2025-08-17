@@ -9,10 +9,16 @@ import Header from './components/Layout/Header';
 import Dashboard from './pages/Dashboard';
 import Configurations from './pages/Configurations';
 import Teams from './pages/Teams';
+import Admin from './pages/Admin';
 import './i18n';
 
-const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, loading } = useAuth();
+interface ProtectedRouteProps {
+  children: React.ReactNode;
+  adminOnly?: boolean;
+}
+
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, adminOnly = false }) => {
+  const { user, loading, isAdmin } = useAuth();
 
   if (loading) {
     return (
@@ -24,6 +30,10 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 
   if (!user) {
     return <LoginForm />;
+  }
+
+  if (adminOnly && !isAdmin) {
+    return <Navigate to="/" replace />;
   }
 
   return (
@@ -39,43 +49,52 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
   );
 };
 
+const AppRoutes: React.FC = () => {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        } />
+        <Route path="/configurations" element={
+          <ProtectedRoute>
+            <Configurations />
+          </ProtectedRoute>
+        } />
+        <Route path="/teams" element={
+          <ProtectedRoute>
+            <Teams />
+          </ProtectedRoute>
+        } />
+        <Route path="/admin" element={
+          <ProtectedRoute adminOnly={true}>
+            <Admin />
+          </ProtectedRoute>
+        } />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 4000,
+          style: {
+            background: '#1F2937',
+            color: '#F9FAFB',
+            border: '1px solid #374151',
+          },
+        }}
+      />
+    </Router>
+  );
+};
+
 function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <Router>
-          <div className="App">
-            <Routes>
-              <Route path="/" element={
-                <ProtectedRoute>
-                  <Dashboard />
-                </ProtectedRoute>
-              } />
-              <Route path="/configurations" element={
-                <ProtectedRoute>
-                  <Configurations />
-                </ProtectedRoute>
-              } />
-              <Route path="/teams" element={
-                <ProtectedRoute>
-                  <Teams />
-                </ProtectedRoute>
-              } />
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-            <Toaster
-              position="top-right"
-              toastOptions={{
-                duration: 4000,
-                style: {
-                  background: '#1F2937',
-                  color: '#F9FAFB',
-                  border: '1px solid #374151',
-                },
-              }}
-            />
-          </div>
-        </Router>
+        <AppRoutes />
       </AuthProvider>
     </ThemeProvider>
   );

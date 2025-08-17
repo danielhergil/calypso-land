@@ -8,7 +8,8 @@ import {
   query, 
   orderBy, 
   Timestamp,
-  setDoc 
+  setDoc,
+  getDoc 
 } from 'firebase/firestore';
 import { 
   ref, 
@@ -99,6 +100,95 @@ export const firestoreService = {
     }, { merge: true });
   },
 
+  async getUserDocument(userId: string): Promise<{ email: string; role?: string; createdAt: Timestamp } | null> {
+    const userRef = doc(db, 'users', userId);
+    const userDoc = await getDoc(userRef);
+    return userDoc.exists() ? userDoc.data() as { email: string; role?: string; createdAt: Timestamp } : null;
+  },
+
+  async getAllUsers(): Promise<Array<{ id: string; email: string; role?: string; createdAt: Timestamp }>> {
+    const usersRef = collection(db, 'users');
+    const snapshot = await getDocs(usersRef);
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as { id: string; email: string; role?: string; createdAt: Timestamp }));
+  },
+
+  async updateUserRole(userId: string, role: string): Promise<void> {
+    const userRef = doc(db, 'users', userId);
+    await updateDoc(userRef, { role });
+  },
+
+  async deleteUser(userId: string): Promise<void> {
+    const userRef = doc(db, 'users', userId);
+    await deleteDoc(userRef);
+  },
+
+  // Enhanced user deletion with Cloud Functions support (when available)
+  async deleteUserCompletely(userId: string, useCloudFunction: boolean = false): Promise<{ 
+    firestoreDeleted: boolean; 
+    authDeleted: boolean; 
+    message: string 
+  }> {
+    try {
+      if (useCloudFunction) {
+        // This would call a Cloud Function for complete deletion
+        // Requires Firebase Admin SDK deployment
+        // const { deleteUserCompletely } = await import('./adminFunctions');
+        // const result = await deleteUserCompletely({ userId });
+        
+        throw new Error('Cloud Functions not implemented. Use server-side Firebase Admin SDK.');
+      } else {
+        // Client-side deletion (Firestore only)
+        const userRef = doc(db, 'users', userId);
+        await deleteDoc(userRef);
+        
+        return {
+          firestoreDeleted: true,
+          authDeleted: false,
+          message: 'User data deleted from database. Authentication account still exists.'
+        };
+      }
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  async getAllUsersWithMetrics(): Promise<Array<{ id: string; email: string; role?: string; createdAt: Timestamp; totalStreamTime: number; totalRecordingTime: number; numberOfTeams: number }>> {
+    const users = await this.getAllUsers();
+    
+    const usersWithMetrics = await Promise.all(
+      users.map(async (user) => {
+        try {
+          const [metrics, teams] = await Promise.all([
+            this.getUserMetrics(user.id),
+            this.getUserTeams(user.id)
+          ]);
+
+          const streamMetrics = metrics.filter(m => m.action === 'stream');
+          const recordMetrics = metrics.filter(m => m.action === 'record');
+          
+          const totalStreamTime = streamMetrics.reduce((acc, m) => acc + m.use, 0);
+          const totalRecordingTime = recordMetrics.reduce((acc, m) => acc + m.use, 0);
+
+          return {
+            ...user,
+            totalStreamTime,
+            totalRecordingTime,
+            numberOfTeams: teams.length
+          };
+        } catch {
+          return {
+            ...user,
+            totalStreamTime: 0,
+            totalRecordingTime: 0,
+            numberOfTeams: 0
+          };
+        }
+      })
+    );
+
+    return usersWithMetrics;
+  },
+
   // Storage Services
   async uploadTeamLogo(userId: string, teamName: string, file: File): Promise<string> {
     // Compress the image before uploading
@@ -123,7 +213,7 @@ export const firestoreService = {
         const fileName = `${teamName}.${ext}`;
         const logoRef = ref(storage, `${userId}/${fileName}`);
         await deleteObject(logoRef);
-      } catch (error) {
+      } catch {
         // Ignore errors for files that don't exist
       }
     });
