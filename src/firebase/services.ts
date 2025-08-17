@@ -117,6 +117,32 @@ export const firestoreService = {
     await updateDoc(userRef, { role });
   },
 
+  // Profile methods
+  async getUser(userId: string): Promise<any> {
+    const userRef = doc(db, 'users', userId);
+    const userDoc = await getDoc(userRef);
+    if (userDoc.exists()) {
+      const data = userDoc.data();
+      return {
+        ...data,
+        createdAt: data.createdAt?.toDate?.()?.toISOString() || data.createdAt
+      };
+    }
+    return null;
+  },
+
+  async updateUser(userId: string, userData: any): Promise<void> {
+    const userRef = doc(db, 'users', userId);
+    await updateDoc(userRef, userData);
+  },
+
+  async uploadImage(file: File, path: string): Promise<string> {
+    const imageRef = ref(storage, path);
+    await uploadBytes(imageRef, file);
+    const downloadURL = await getDownloadURL(imageRef);
+    return downloadURL;
+  },
+
   async deleteUser(userId: string): Promise<void> {
     const userRef = doc(db, 'users', userId);
     await deleteDoc(userRef);

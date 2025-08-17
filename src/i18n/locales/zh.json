@@ -5,6 +5,7 @@
     "email": "邮箱",
     "password": "密码",
     "save": "保存",
+    "saving": "保存中...",
     "cancel": "取消",
     "delete": "删除",
     "edit": "编辑",
@@ -25,7 +26,29 @@
     "home": "首页",
     "configurations": "配置",
     "teams": "团队",
+    "profile": "个人资料",
     "admin": "管理"
+  },
+  "public": {
+    "hero": {
+      "title": "欢迎来到Calypso",
+      "subtitle": "观看来自世界各地的体育直播",
+      "searchPlaceholder": "搜索直播、主播或体育..."
+    },
+    "sections": {
+      "liveNow": "正在直播",
+      "featured": "精选直播",
+      "categories": "分类"
+    },
+    "stream": {
+      "viewers": "观众",
+      "watchNow": "立即观看",
+      "live": "直播中"
+    },
+    "topbar": {
+      "creatorDashboard": "创作者仪表板",
+      "search": "搜索直播、主播或体育..."
+    }
   },
   "home": {
     "title": "仪表板",
@@ -91,6 +114,21 @@
         "user": "用户",
         "admin": "管理员"
       }
+    }
+  },
+  "profile": {
+    "subtitle": "管理您的账户设置和直播信息",
+    "location": {
+      "title": "位置信息",
+      "country": "国家",
+      "city": "城市",
+      "countryPlaceholder": "输入您的国家",
+      "cityPlaceholder": "输入您的城市"
+    },
+    "channels": {
+      "youtube": "YouTube 频道",
+      "youtubePlaceholder": "输入 YouTube 频道 ID",
+      "noChannels": "尚未添加 YouTube 频道"
     }
   }
 }

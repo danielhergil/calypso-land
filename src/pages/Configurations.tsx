@@ -37,6 +37,7 @@ const Configurations: React.FC = () => {
   const [connectionsModalProfile, setConnectionsModalProfile] = useState<StreamProfile | null>(null);
   const [isConnectionsModalOpen, setIsConnectionsModalOpen] = useState(false);
   const [editingConnection, setEditingConnection] = useState<Connection | null>(null);
+  const [showConnectionForm, setShowConnectionForm] = useState(false);
   const [connectionForm, setConnectionForm] = useState<Connection>({
     alias: '',
     full_url: '',
@@ -122,8 +123,21 @@ const Configurations: React.FC = () => {
     setIsConnectionsModalOpen(true);
   };
 
+  const handleCloseConnectionsModal = () => {
+    setIsConnectionsModalOpen(false);
+    setShowConnectionForm(false);
+    setEditingConnection(null);
+    setConnectionForm({
+      alias: '',
+      full_url: '',
+      rtmp_url: '',
+      streamkey: ''
+    });
+  };
+
   const handleAddConnection = () => {
     setEditingConnection(null);
+    setShowConnectionForm(true);
     setConnectionForm({
       alias: '',
       full_url: '',
@@ -134,6 +148,7 @@ const Configurations: React.FC = () => {
 
   const handleEditConnection = (connection: Connection) => {
     setEditingConnection(connection);
+    setShowConnectionForm(true);
     setConnectionForm({ ...connection });
   };
 
@@ -160,6 +175,7 @@ const Configurations: React.FC = () => {
       ));
       setConnectionsModalProfile(updatedProfile);
       setEditingConnection(null);
+      setShowConnectionForm(false);
       setConnectionForm({
         alias: '',
         full_url: '',
@@ -711,7 +727,7 @@ const Configurations: React.FC = () => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
-            onClick={() => setIsConnectionsModalOpen(false)}
+            onClick={handleCloseConnectionsModal}
           >
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
@@ -728,7 +744,7 @@ const Configurations: React.FC = () => {
                     <p className="text-blue-100">{connectionsModalProfile.alias}</p>
                   </div>
                   <button
-                    onClick={() => setIsConnectionsModalOpen(false)}
+                    onClick={handleCloseConnectionsModal}
                     className="p-2 bg-white/20 rounded-lg hover:bg-white/30 transition-colors"
                   >
                     <X className="w-6 h-6 text-white" />
@@ -747,7 +763,7 @@ const Configurations: React.FC = () => {
                 </button>
 
                 {/* Connection Form */}
-                {(editingConnection !== null || connectionForm.alias) && (
+                {showConnectionForm && (
                   <motion.div
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -823,6 +839,7 @@ const Configurations: React.FC = () => {
                       <button
                         onClick={() => {
                           setEditingConnection(null);
+                          setShowConnectionForm(false);
                           setConnectionForm({ alias: '', full_url: '', rtmp_url: '', streamkey: '' });
                         }}
                         className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"

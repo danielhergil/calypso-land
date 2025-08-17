@@ -5,6 +5,7 @@
     "email": "Email",
     "password": "Password",
     "save": "Save",
+    "saving": "Saving...",
     "cancel": "Cancel",
     "delete": "Delete",
     "edit": "Edit",
@@ -25,7 +26,29 @@
     "home": "Home",
     "configurations": "Configurations",
     "teams": "Teams",
+    "profile": "Profile",
     "admin": "Admin"
+  },
+  "public": {
+    "hero": {
+      "title": "Welcome to Calypso",
+      "subtitle": "Watch live sports streams from around the world",
+      "searchPlaceholder": "Search live streams, streamers, or sports..."
+    },
+    "sections": {
+      "liveNow": "Live Now",
+      "featured": "Featured Streams",
+      "categories": "Categories"
+    },
+    "stream": {
+      "viewers": "viewers",
+      "watchNow": "Watch Now",
+      "live": "LIVE"
+    },
+    "topbar": {
+      "creatorDashboard": "Creator Dashboard",
+      "search": "Search live streams, streamers, or sports..."
+    }
   },
   "home": {
     "title": "Dashboard",
@@ -72,6 +95,21 @@
     "darkMode": "Dark Mode",
     "lightMode": "Light Mode",
     "language": "Language"
+  },
+  "profile": {
+    "subtitle": "Manage your account settings and streaming information",
+    "location": {
+      "title": "Location Information",
+      "country": "Country",
+      "city": "City",
+      "countryPlaceholder": "Enter your country",
+      "cityPlaceholder": "Enter your city"
+    },
+    "channels": {
+      "youtube": "YouTube Channels",
+      "youtubePlaceholder": "Enter YouTube channel ID",
+      "noChannels": "No YouTube channels added yet"
+    }
   },
   "admin": {
     "title": "Admin Panel",

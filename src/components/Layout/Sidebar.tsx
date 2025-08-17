@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Home, Settings, Users, LogOut, Shield } from 'lucide-react';
+import { Home, Settings, Users, LogOut, Shield, User } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { motion } from 'framer-motion';
 
@@ -10,10 +10,11 @@ const Sidebar: React.FC = () => {
   const { logout, isAdmin } = useAuth();
 
   const navItems = [
-    { path: '/', icon: Home, label: t('navigation.home') },
-    { path: '/configurations', icon: Settings, label: t('navigation.configurations') },
-    { path: '/teams', icon: Users, label: t('navigation.teams') },
-    ...(isAdmin ? [{ path: '/admin', icon: Shield, label: t('navigation.admin') }] : []),
+    { path: '/dashboard', icon: Home, label: t('navigation.home') },
+    { path: '/dashboard/configurations', icon: Settings, label: t('navigation.configurations') },
+    { path: '/dashboard/teams', icon: Users, label: t('navigation.teams') },
+    { path: '/dashboard/profile', icon: User, label: t('navigation.profile') },
+    ...(isAdmin ? [{ path: '/dashboard/admin', icon: Shield, label: t('navigation.admin') }] : []),
   ];
 
   return (
@@ -43,6 +44,7 @@ const Sidebar: React.FC = () => {
             <li key={item.path}>
               <NavLink
                 to={item.path}
+                end={item.path === '/dashboard'}
                 className={({ isActive }) =>
                   `flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 ${
                     isActive

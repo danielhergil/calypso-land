@@ -6,18 +6,35 @@ import { ThemeProvider } from './contexts/ThemeContext';
 import LoginForm from './components/Auth/LoginForm';
 import Sidebar from './components/Layout/Sidebar';
 import Header from './components/Layout/Header';
+import PublicTopbar from './components/Layout/PublicTopbar';
+import PublicHomepage from './pages/PublicHomepage';
+import StreamViewer from './pages/StreamViewer';
 import Dashboard from './pages/Dashboard';
 import Configurations from './pages/Configurations';
 import Teams from './pages/Teams';
+import Profile from './pages/Profile';
 import Admin from './pages/Admin';
 import './i18n';
 
+// Public Layout Component
+const PublicLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  return (
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
+      <PublicTopbar />
+      <main>
+        {children}
+      </main>
+    </div>
+  );
+};
+
+// Dashboard Layout Component (Private/Protected)
 interface ProtectedRouteProps {
   children: React.ReactNode;
   adminOnly?: boolean;
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, adminOnly = false }) => {
+const DashboardLayout: React.FC<ProtectedRouteProps> = ({ children, adminOnly = false }) => {
   const { user, loading, isAdmin } = useAuth();
 
   if (loading) {
@@ -33,7 +50,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, adminOnly = f
   }
 
   if (adminOnly && !isAdmin) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   return (
@@ -53,26 +70,47 @@ const AppRoutes: React.FC = () => {
   return (
     <Router>
       <Routes>
+        {/* Public Routes */}
         <Route path="/" element={
-          <ProtectedRoute>
+          <PublicLayout>
+            <PublicHomepage />
+          </PublicLayout>
+        } />
+        <Route path="/stream/:streamId" element={<StreamViewer />} />
+        
+        {/* Dashboard Routes (Protected) */}
+        <Route path="/dashboard" element={
+          <DashboardLayout>
             <Dashboard />
-          </ProtectedRoute>
+          </DashboardLayout>
         } />
-        <Route path="/configurations" element={
-          <ProtectedRoute>
+        <Route path="/dashboard/configurations" element={
+          <DashboardLayout>
             <Configurations />
-          </ProtectedRoute>
+          </DashboardLayout>
         } />
-        <Route path="/teams" element={
-          <ProtectedRoute>
+        <Route path="/dashboard/teams" element={
+          <DashboardLayout>
             <Teams />
-          </ProtectedRoute>
+          </DashboardLayout>
         } />
-        <Route path="/admin" element={
-          <ProtectedRoute adminOnly={true}>
+        <Route path="/dashboard/profile" element={
+          <DashboardLayout>
+            <Profile />
+          </DashboardLayout>
+        } />
+        <Route path="/dashboard/admin" element={
+          <DashboardLayout adminOnly={true}>
             <Admin />
-          </ProtectedRoute>
+          </DashboardLayout>
         } />
+        
+        {/* Redirect old routes to new dashboard routes */}
+        <Route path="/configurations" element={<Navigate to="/dashboard/configurations" replace />} />
+        <Route path="/teams" element={<Navigate to="/dashboard/teams" replace />} />
+        <Route path="/admin" element={<Navigate to="/dashboard/admin" replace />} />
+        
+        {/* Catch all */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <Toaster

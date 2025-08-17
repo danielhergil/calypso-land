@@ -5,6 +5,7 @@
     "email": "Correo Electrónico",
     "password": "Contraseña",
     "save": "Guardar",
+    "saving": "Guardando...",
     "cancel": "Cancelar",
     "delete": "Eliminar",
     "edit": "Editar",
@@ -25,7 +26,29 @@
     "home": "Inicio",
     "configurations": "Configuraciones",
     "teams": "Equipos",
+    "profile": "Perfil",
     "admin": "Administración"
+  },
+  "public": {
+    "hero": {
+      "title": "Bienvenido a Calypso",
+      "subtitle": "Mira transmisiones deportivas en vivo de todo el mundo",
+      "searchPlaceholder": "Buscar transmisiones en vivo, streamers o deportes..."
+    },
+    "sections": {
+      "liveNow": "En Vivo Ahora",
+      "featured": "Transmisiones Destacadas",
+      "categories": "Categorías"
+    },
+    "stream": {
+      "viewers": "espectadores",
+      "watchNow": "Ver Ahora",
+      "live": "EN VIVO"
+    },
+    "topbar": {
+      "creatorDashboard": "Panel de Creador",
+      "search": "Buscar transmisiones en vivo, streamers o deportes..."
+    }
   },
   "home": {
     "title": "Panel de Control",
@@ -91,6 +114,21 @@
         "user": "Usuario",
         "admin": "Administrador"
       }
+    }
+  },
+  "profile": {
+    "subtitle": "Gestionar la configuración de tu cuenta e información de streaming",
+    "location": {
+      "title": "Información de Ubicación",
+      "country": "País",
+      "city": "Ciudad",
+      "countryPlaceholder": "Ingresa tu país",
+      "cityPlaceholder": "Ingresa tu ciudad"
+    },
+    "channels": {
+      "youtube": "Canales de YouTube",
+      "youtubePlaceholder": "Ingresa ID del canal de YouTube",
+      "noChannels": "No se han añadido canales de YouTube aún"
     }
   }
 }
