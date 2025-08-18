@@ -124,13 +124,28 @@ const Profile: React.FC = () => {
 
     setSaving(true);
     try {
-      const updateData: Partial<UserProfile> = {
-        country: country.trim() || undefined,
-        city: city.trim() || undefined,
-        channel_ids: youtubeChannels.length > 0 ? { youtube: youtubeChannels } : undefined
-      };
+      const updateData: Partial<UserProfile> = {};
+      
+      // Only include non-empty fields in the update
+      if (country.trim()) {
+        updateData.country = country.trim();
+      }
+      if (city.trim()) {
+        updateData.city = city.trim();
+      }
+      if (youtubeChannels.length > 0) {
+        updateData.channel_ids = { youtube: youtubeChannels };
+      }
 
       await firestoreService.updateUser(user.uid, updateData);
+      
+      // Sync channel changes to the global channels collection
+      try {
+        await firestoreService.syncUserChannelsToGlobal(user.uid, youtubeChannels);
+      } catch (syncError) {
+        console.error('Error syncing channels to global collection:', syncError);
+        // Don't fail the profile save if sync fails
+      }
       
       setProfile(prev => prev ? { ...prev, ...updateData } : null);
       showSuccess('Profile updated successfully');

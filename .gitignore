@@ -34,3 +34,8 @@ LIVE_STREAMS_DATABASE.md
 channel_ids.json
 db_rules
 firestore_database_arch
+
+# Environment files (CRITICAL - contains sensitive API keys)
+.env
+.env.*
+!.env.example

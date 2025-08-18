@@ -255,5 +255,117 @@ export const firestoreService = {
     
     // Upload new compressed logo
     return await this.uploadTeamLogo(userId, newTeamName, file);
+  },
+
+  // Global Channels Collection - for efficient live stream aggregation
+  async getAllChannelIds(): Promise<string[]> {
+    try {
+      const channelsRef = collection(db, 'channels');
+      const snapshot = await getDocs(channelsRef);
+      const channelIds = snapshot.docs.map(doc => doc.id);
+      return channelIds;
+    } catch (error) {
+      console.error('Error fetching all channel IDs:', error);
+      return [];
+    }
+  },
+
+  async addChannelToGlobal(channelId: string, userId: string): Promise<void> {
+    try {
+      const channelRef = doc(db, 'channels', channelId);
+      const channelDoc = await getDoc(channelRef);
+      
+      if (channelDoc.exists()) {
+        // Channel exists, add this user to the users array
+        const data = channelDoc.data();
+        const users = data.users || [];
+        if (!users.includes(userId)) {
+          await updateDoc(channelRef, {
+            users: [...users, userId],
+            updatedAt: Timestamp.now()
+          });
+        }
+      } else {
+        // New channel, create document
+        await setDoc(channelRef, {
+          users: [userId],
+          createdAt: Timestamp.now(),
+          updatedAt: Timestamp.now()
+        });
+      }
+    } catch (error) {
+      console.error(`Error adding channel ${channelId} to global collection:`, error);
+      throw error;
+    }
+  },
+
+  async removeChannelFromGlobal(channelId: string, userId: string): Promise<void> {
+    try {
+      const channelRef = doc(db, 'channels', channelId);
+      const channelDoc = await getDoc(channelRef);
+      
+      if (channelDoc.exists()) {
+        const data = channelDoc.data();
+        const users = data.users || [];
+        const updatedUsers = users.filter((id: string) => id !== userId);
+        
+        if (updatedUsers.length === 0) {
+          // No users left, delete the channel document
+          await deleteDoc(channelRef);
+        } else {
+          // Update with remaining users
+          await updateDoc(channelRef, {
+            users: updatedUsers,
+            updatedAt: Timestamp.now()
+          });
+        }
+      }
+    } catch (error) {
+      console.error(`Error removing channel ${channelId} from global collection:`, error);
+      throw error;
+    }
+  },
+
+  async syncUserChannelsToGlobal(userId: string, newChannelIds: string[]): Promise<void> {
+    try {
+      // Add all channels (the addChannelToGlobal function handles duplicates)
+      for (const channelId of newChannelIds) {
+        await this.addChannelToGlobal(channelId, userId);
+      }
+    } catch (error) {
+      console.error(`Error syncing channels for user ${userId}:`, error);
+      throw error;
+    }
+  },
+
+  // Migration function to populate global channels collection from existing user data
+  async migrateChannelsToGlobal(): Promise<{ success: boolean; migratedUsers: number; totalChannels: number }> {
+    try {
+      const allUsers = await this.getAllUsers();
+      let migratedUsers = 0;
+      let totalChannels = 0;
+      
+      for (const user of allUsers) {
+        try {
+          const userData = await this.getUser(user.id);
+          const userChannels = userData?.channel_ids?.youtube || [];
+          
+          if (Array.isArray(userChannels) && userChannels.length > 0) {
+            // Add each channel to the global collection
+            for (const channelId of userChannels) {
+              await this.addChannelToGlobal(channelId, user.id);
+              totalChannels++;
+            }
+            migratedUsers++;
+          }
+        } catch (error) {
+          // Silently continue with other users
+        }
+      }
+      
+      return { success: true, migratedUsers, totalChannels };
+    } catch (error) {
+      return { success: false, migratedUsers: 0, totalChannels: 0 };
+    }
   }
 };

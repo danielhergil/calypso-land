@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { Play, Users, Star, TrendingUp } from 'lucide-react';
 import { UserChannelsService } from '../services/userChannelsService';
+import { firestoreService } from '../firebase/services';
 import StreamCard from '../components/LiveStreams/StreamCard';
 import LoadingSpinner from '../components/LiveStreams/LoadingSpinner';
 import { useAuth } from '../contexts/AuthContext';
@@ -47,7 +48,6 @@ const PublicHomepage: React.FC = () => {
       // Prevent too frequent reloads (debounce) - but allow initial load
       const now = Date.now();
       if (lastLoadTime > 0 && now - lastLoadTime < 5000) { // 5 second debounce after first load
-        console.log('Skipping load due to debounce');
         return;
       }
       setLastLoadTime(now);
@@ -55,35 +55,18 @@ const PublicHomepage: React.FC = () => {
       try {
         setLoading(true);
         setError(null);
-        console.log('Starting to load streams...');
         
         let streamsData: StreamData[] = [];
         
-        if (USE_REAL_USER_DATA && user) {
-          console.log(`Loading live streams for logged-in user: ${user.uid}`);
-          
-          // Get video IDs from current user's database
-          const userVideoIds = await UserChannelsService.getCurrentUserVideoIds(user.uid);
-          console.log('User video IDs from database:', userVideoIds);
-          
-          if (userVideoIds.length > 0) {
-            // Check which of the user's videos are live
-            streamsData = await UserChannelsService.getLiveStreamsFromAllUsers();
-            console.log('Live streams found from user data:', streamsData);
-          }
+        if (USE_REAL_USER_DATA) {
+          // Get live streams from ALL users using the new global collection
+          streamsData = await UserChannelsService.getLiveStreamsFromAllUsers();
           
           // If no live streams found, fall back to test video IDs as static content
           if (streamsData.length === 0) {
-            console.log('No live streams found, using fallback test data');
             streamsData = await UserChannelsService.getVideosAsStreams(TEST_VIDEO_IDS);
           }
-          
-          console.log('Final streams data:', streamsData);
-        } else if (USE_REAL_USER_DATA && !user) {
-          console.log('No user logged in, using test data');
-          streamsData = await UserChannelsService.getVideosAsStreams(TEST_VIDEO_IDS);
         } else {
-          console.log('Using test video IDs...');
           streamsData = await UserChannelsService.getVideosAsStreams(TEST_VIDEO_IDS);
         }
         
@@ -93,7 +76,6 @@ const PublicHomepage: React.FC = () => {
           isFeatured: index < 2
         }));
         
-        console.log('Final streams data:', streamsWithFeatured);
         setStreams(streamsWithFeatured);
       } catch (err) {
         console.error('Error loading streams:', err);
@@ -113,8 +95,6 @@ const PublicHomepage: React.FC = () => {
     : streams.filter(stream => stream.category === selectedCategory);
 
   const featuredStreams = streams.filter(stream => stream.isFeatured);
-
-  console.log('Homepage render - Loading:', loading, 'Error:', error, 'Streams:', streams);
 
   if (loading) {
     return (

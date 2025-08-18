@@ -65,21 +65,40 @@ export class UserChannelsService {
 
   static async getAllUsersVideoIds(): Promise<string[]> {
     try {
-      console.log('Note: getAllUsersVideoIds() requires admin permissions');
-      console.log('For testing, returning empty array to use only current user data');
-      
-      // For testing, return empty array so we only use current user's video IDs
-      return [];
+      // Use the new efficient global channels collection
+      const allChannelIds = await firestoreService.getAllChannelIds();
+      return allChannelIds;
     } catch (error) {
-      console.error('Error fetching all users video IDs:', error);
-      return [];
+      console.error('Error fetching all channel IDs from global collection:', error);
+      
+      // Fallback to old method if global collection fails
+      try {
+        const allUsers = await firestoreService.getAllUsers();
+        const allVideoIds: string[] = [];
+        
+        for (const user of allUsers) {
+          try {
+            const userData = await firestoreService.getUser(user.id);
+            const userVideoIds = userData?.channel_ids?.youtube || [];
+            if (Array.isArray(userVideoIds)) {
+              allVideoIds.push(...userVideoIds);
+            }
+          } catch (error) {
+            // Continue with other users
+          }
+        }
+        
+        return [...new Set(allVideoIds)];
+      } catch (fallbackError) {
+        console.error('Fallback method also failed:', fallbackError);
+        return [];
+      }
     }
   }
   
   
   static async getPublicChannelIds(): Promise<string[]> {
     // Return a curated list of public channel IDs to check for live streams
-    console.log('Using curated public channel IDs for homepage');
     return [
       'UCSJ4gkVC6NrvII8umztf0Ow', // Lofi Girl - often has live streams
       'UCx4VtJ8gu_ZJKv4QfayYK4g', // Example channel - replace with your test channels
@@ -88,26 +107,17 @@ export class UserChannelsService {
 
   static async getPublicVideoIds(): Promise<string[]> {
     // For testing, return empty array to force using user data from database
-    // This way we only use the actual video IDs from your database
-    console.log('Using only user database video IDs (no public fallback)');
     return [];
   }
   
   static async getCurrentUserVideoIds(userId?: string): Promise<string[]> {
     if (!userId) {
-      console.log('No user ID provided, returning empty array');
       return [];
     }
     
     try {
-      console.log(`Fetching video IDs for current user: ${userId}`);
       const userData = await firestoreService.getUser(userId);
-      console.log(`User data:`, userData);
-      
-      // Read from channel_ids.youtube array - treating them as video IDs for testing
-      // Your database: { channel_ids: { youtube: ["qwerty", "phi36uzvzD0", "VCWupbQE1Jw"] } }
       const userVideoIds = userData?.channel_ids?.youtube || [];
-      console.log(`Video IDs from channel_ids.youtube for user:`, userVideoIds);
       
       if (Array.isArray(userVideoIds)) {
         return userVideoIds;
@@ -140,27 +150,20 @@ export class UserChannelsService {
   // For testing with videos instead of channels - ONLY SHOWS LIVE STREAMS
   static async getVideosAsStreams(videoIds: string[]): Promise<StreamData[]> {
     if (videoIds.length === 0) {
-      console.log('No video IDs provided');
       return [];
     }
     
     try {
-      console.log('Fetching videos as streams for IDs:', videoIds);
       const youtubeResponses = await YouTubeService.getVideosMetadata(videoIds);
-      console.log('YouTube responses received:', youtubeResponses);
       
       // IMPORTANT: Only show videos that are currently live
       const liveResponses = youtubeResponses.filter(response => 
         response.success && response.data && response.data.isLiveNow
       );
-      console.log(`Filtered to ${liveResponses.length} live videos out of ${youtubeResponses.length} total`);
       
-      const streamData = liveResponses.map(response => 
+      return liveResponses.map(response => 
         this.transformToStreamData(response.data)
       );
-      console.log('Live stream data:', streamData);
-      
-      return streamData;
     } catch (error) {
       console.error('Error fetching videos as streams:', error);
       return [];
@@ -243,8 +246,6 @@ export class UserChannelsService {
   
   static async getLiveStreamsFromAllUsers(): Promise<StreamData[]> {
     try {
-      console.log('Getting all user video data and filtering for live streams...');
-      
       // Get video IDs from all users + public video IDs  
       const [allUserVideos, publicVideos] = await Promise.all([
         this.getAllUsersVideoIds(),
@@ -252,10 +253,8 @@ export class UserChannelsService {
       ]);
       
       const allVideoIds = [...new Set([...allUserVideos, ...publicVideos])];
-      console.log('Fetching cached data for video IDs:', allVideoIds);
       
       if (allVideoIds.length === 0) {
-        console.log('No video IDs to fetch');
         return [];
       }
       
@@ -263,12 +262,9 @@ export class UserChannelsService {
       const youtubeResponses = await YouTubeService.getVideosMetadata(allVideoIds);
       
       // Simply filter for videos that are currently live and transform them
-      const liveStreams = youtubeResponses
+      return youtubeResponses
         .filter(response => response.success && response.data.isLiveNow)
         .map(response => this.transformToStreamData(response.data));
-      
-      console.log(`Showing ${liveStreams.length} live streams (filtered from ${allVideoIds.length} total videos)`);
-      return liveStreams;
     } catch (error) {
       console.error('Error fetching live streams from all users:', error);
       return [];
@@ -277,7 +273,6 @@ export class UserChannelsService {
 
   static async getLiveStreamsFromAllChannels(): Promise<StreamData[]> {
     // For now, redirect to video-based method for testing
-    console.log('Redirecting to video-based live stream detection for testing...');
     return await this.getLiveStreamsFromAllUsers();
   }
 
