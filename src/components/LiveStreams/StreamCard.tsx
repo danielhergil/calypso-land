@@ -28,7 +28,7 @@ interface StreamCardProps {
 
 const StreamCard: React.FC<StreamCardProps> = ({ stream, index, size = 'normal' }) => {
   const isLarge = size === 'large';
-  const cardHeight = isLarge ? 'h-44' : 'h-80';
+  const cardHeight = isLarge ? 'h-44' : 'h-80'; // Back to original height
   const imageHeight = isLarge ? 'h-full' : 'h-48';
   
   const formatViewers = (count: number): string => {
@@ -84,9 +84,9 @@ const StreamCard: React.FC<StreamCardProps> = ({ stream, index, size = 'normal' 
       </div>
       
       {/* Content */}
-      <div className={`p-4 ${isLarge ? 'flex-1 flex flex-col justify-between' : 'flex-1 flex flex-col justify-between'}`}>
-        <div className={isLarge ? 'flex-1' : ''}>
-          <h3 className={`font-semibold text-gray-900 dark:text-white mb-2 ${isLarge ? 'line-clamp-2' : 'line-clamp-2 h-12 overflow-hidden'}`}>
+      <div className={`p-4 pb-6 ${isLarge ? 'flex-1 flex flex-col justify-between' : 'flex-1 flex flex-col justify-between'}`}>
+        <div className={isLarge ? 'flex-1' : 'flex-1'}>
+          <h3 className={`font-semibold text-gray-900 dark:text-white mb-2 ${isLarge ? 'line-clamp-2' : 'line-clamp-2'}`}>
             {truncateTitle(stream.title, isLarge ? 80 : 60)}
           </h3>
           <p className="text-gray-600 dark:text-gray-400 text-sm mb-2">
@@ -103,33 +103,30 @@ const StreamCard: React.FC<StreamCardProps> = ({ stream, index, size = 'normal' 
           )}
         </div>
         
-        <div className={`flex items-center justify-between ${isLarge ? 'mt-2' : 'gap-2'}`}>
+        {/* Bottom section - Featured/Category and Tags */}
+        <div className={`flex items-center justify-between gap-2 ${isLarge ? 'mt-2' : ''}`}>
           {stream.isFeatured ? (
-            <span className="text-xs bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 px-2 py-1 rounded">
-              Featured
+            <span className="text-xs bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 px-2 py-1 rounded font-medium flex-shrink-0">
+              ⭐ Featured
             </span>
           ) : (
-            <span className={`text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded truncate ${isLarge ? 'flex-shrink-0' : 'flex-shrink-0 max-w-24'}`}>
+            <span className={`text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded flex-shrink-0 ${isLarge ? 'max-w-28' : 'max-w-24'} truncate`}>
               {stream.category}
             </span>
           )}
           
-          <div className={`flex space-x-1 ${isLarge ? 'ml-4' : 'overflow-hidden'}`}>
-            {stream.tags.slice(0, 2).map((tag) => (
+          {/* Tags with better sizing */}
+          <div className="flex space-x-1 overflow-hidden min-w-0 flex-1 justify-end">
+            {stream.tags.slice(0, isLarge ? 3 : 2).map((tag, tagIndex) => (
               <span
-                key={tag}
-                className="text-xs text-blue-600 dark:text-blue-400 truncate"
+                key={`${tag}-${tagIndex}`}
+                className="text-xs text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-1.5 py-0.5 rounded truncate"
+                style={{ maxWidth: isLarge ? '90px' : '75px' }}
               >
                 #{tag}
               </span>
             ))}
           </div>
-          
-          {isLarge && (
-            <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm">
-              Watch Now
-            </button>
-          )}
         </div>
       </div>
     </motion.div>
