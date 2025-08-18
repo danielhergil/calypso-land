@@ -23,3 +23,14 @@ dist-ssr
 *.sln
 *.sw?
 .env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Development and testing files
+ADMIN_USER_DELETION_GUIDE.md
+LIVE_STREAMS_DATABASE.md
+channel_ids.json
+db_rules
+firestore_database_arch
