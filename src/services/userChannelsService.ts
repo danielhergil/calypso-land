@@ -27,13 +27,14 @@ interface StreamData {
   id: string;
   title: string;
   channelName: string;
+  channelId?: string; // Channel ID for the stream
   viewers: number;
   thumbnail: string;
   category: string;
   isLive: boolean;
   duration: string;
   tags: string[];
-  videoId: string;
+  videoId: string; // Current live video ID or stream ID
   actualStartTime: string | null;
   description: string;
   isFeatured?: boolean;
@@ -63,32 +64,41 @@ export class UserChannelsService {
     }
   }
 
-  static async getAllUsersVideoIds(): Promise<string[]> {
+  static async getAllUsersChannelIds(): Promise<string[]> {
     try {
+      console.log('🗄️ Attempting to fetch channel IDs from global collection...');
       // Use the new efficient global channels collection
       const allChannelIds = await firestoreService.getAllChannelIds();
+      console.log(`✅ Retrieved ${allChannelIds.length} channel IDs from global collection`);
       return allChannelIds;
     } catch (error) {
       console.error('Error fetching all channel IDs from global collection:', error);
       
       // Fallback to old method if global collection fails
       try {
+        console.log('🔄 Falling back to fetching channel IDs from individual users...');
         const allUsers = await firestoreService.getAllUsers();
-        const allVideoIds: string[] = [];
+        console.log(`👥 Found ${allUsers.length} users in database`);
+        
+        const allChannelIds: string[] = [];
         
         for (const user of allUsers) {
           try {
             const userData = await firestoreService.getUser(user.id);
-            const userVideoIds = userData?.channel_ids?.youtube || [];
-            if (Array.isArray(userVideoIds)) {
-              allVideoIds.push(...userVideoIds);
+            const userChannelIds = userData?.channel_ids?.youtube || [];
+            if (Array.isArray(userChannelIds)) {
+              allChannelIds.push(...userChannelIds);
+              console.log(`📝 User ${user.id} has ${userChannelIds.length} channel IDs`);
             }
           } catch (error) {
+            console.warn(`⚠️ Failed to get channel IDs for user ${user.id}`);
             // Continue with other users
           }
         }
         
-        return [...new Set(allVideoIds)];
+        const uniqueChannelIds = [...new Set(allChannelIds)];
+        console.log(`✅ Fallback method found ${uniqueChannelIds.length} unique channel IDs from ${allUsers.length} users`);
+        return uniqueChannelIds;
       } catch (fallbackError) {
         console.error('Fallback method also failed:', fallbackError);
         return [];
@@ -98,36 +108,33 @@ export class UserChannelsService {
   
   
   static async getPublicChannelIds(): Promise<string[]> {
-    // Return a curated list of public channel IDs to check for live streams
-    return [
-      'UCSJ4gkVC6NrvII8umztf0Ow', // Lofi Girl - often has live streams
-      'UCx4VtJ8gu_ZJKv4QfayYK4g', // Example channel - replace with your test channels
-    ];
+    // No public fallback channels - only use real user data
+    return [];
   }
 
   static async getPublicVideoIds(): Promise<string[]> {
-    // For testing, return empty array to force using user data from database
+    // Deprecated - only keeping for backward compatibility
     return [];
   }
   
-  static async getCurrentUserVideoIds(userId?: string): Promise<string[]> {
+  static async getCurrentUserChannelIds(userId?: string): Promise<string[]> {
     if (!userId) {
       return [];
     }
     
     try {
       const userData = await firestoreService.getUser(userId);
-      const userVideoIds = userData?.channel_ids?.youtube || [];
+      const userChannelIds = userData?.channel_ids?.youtube || [];
       
-      if (Array.isArray(userVideoIds)) {
-        return userVideoIds;
-      } else if (userVideoIds) {
-        return [userVideoIds];
+      if (Array.isArray(userChannelIds)) {
+        return userChannelIds;
+      } else if (userChannelIds) {
+        return [userChannelIds];
       }
       
       return [];
     } catch (error) {
-      console.error('Error fetching current user video IDs:', error);
+      console.error('Error fetching current user channel IDs:', error);
       return [];
     }
   }
@@ -136,19 +143,47 @@ export class UserChannelsService {
     if (channelIds.length === 0) return [];
     
     try {
+      console.log(`📺 Checking ${channelIds.length} channels for live streams...`);
       const youtubeResponses = await YouTubeService.getChannelsMetadata(channelIds);
       
-      return youtubeResponses
-        .filter(response => response.data.isLiveNow)
+      const liveStreams = youtubeResponses
+        .filter(response => response.success && response.data.isLiveNow)
         .map(response => this.transformToStreamData(response.data));
+      
+      console.log(`🔴 Found ${liveStreams.length} live streams out of ${channelIds.length} channels`);
+      return liveStreams;
     } catch (error) {
       console.error('Error fetching channels live streams:', error);
       return [];
     }
   }
   
-  // For testing with videos instead of channels - ONLY SHOWS LIVE STREAMS
+  // Get streams from channels - ONLY SHOWS LIVE STREAMS
+  static async getChannelsAsStreams(channelIds: string[]): Promise<StreamData[]> {
+    if (channelIds.length === 0) {
+      return [];
+    }
+    
+    try {
+      const youtubeResponses = await YouTubeService.getChannelsMetadata(channelIds);
+      
+      // IMPORTANT: Only show channels that are currently live
+      const liveResponses = youtubeResponses.filter(response => 
+        response.success && response.data && response.data.isLiveNow
+      );
+      
+      return liveResponses.map(response => 
+        this.transformToStreamData(response.data)
+      );
+    } catch (error) {
+      console.error('Error fetching channels as streams:', error);
+      return [];
+    }
+  }
+
+  // For backward compatibility - DEPRECATED: Use getChannelsAsStreams instead
   static async getVideosAsStreams(videoIds: string[]): Promise<StreamData[]> {
+    console.warn('getVideosAsStreams is deprecated. Use getChannelsAsStreams with channel IDs instead.');
     if (videoIds.length === 0) {
       return [];
     }
@@ -181,6 +216,7 @@ export class UserChannelsService {
       id: data.videoId,
       title: data.title || 'Untitled Stream',
       channelName: data.channelName || 'Unknown Channel',
+      channelId: data.channelId, // Include channel ID if available
       viewers: data.concurrentViewers || 0,
       thumbnail: this.getBestThumbnail(data.thumbnails),
       category: this.getCategoryFromTags(limitedTags),
@@ -245,50 +281,38 @@ export class UserChannelsService {
   }
   
   static async getLiveStreamsFromAllUsers(): Promise<StreamData[]> {
-    try {
-      // Get video IDs from all users + public video IDs  
-      const [allUserVideos, publicVideos] = await Promise.all([
-        this.getAllUsersVideoIds(),
-        this.getPublicVideoIds()
-      ]);
-      
-      const allVideoIds = [...new Set([...allUserVideos, ...publicVideos])];
-      
-      if (allVideoIds.length === 0) {
-        return [];
-      }
-      
-      // Get cached data for all videos - this already tells us if they're live
-      const youtubeResponses = await YouTubeService.getVideosMetadata(allVideoIds);
-      
-      // Simply filter for videos that are currently live and transform them
-      return youtubeResponses
-        .filter(response => response.success && response.data.isLiveNow)
-        .map(response => this.transformToStreamData(response.data));
-    } catch (error) {
-      console.error('Error fetching live streams from all users:', error);
-      return [];
-    }
+    console.warn('getLiveStreamsFromAllUsers is deprecated. Use getLiveStreamsFromAllChannels instead.');
+    return await this.getLiveStreamsFromAllChannels();
   }
 
   static async getLiveStreamsFromAllChannels(): Promise<StreamData[]> {
-    // For now, redirect to video-based method for testing
-    return await this.getLiveStreamsFromAllUsers();
+    try {
+      // Get channel IDs from all users in the database
+      const allUserChannels = await this.getAllUsersChannelIds();
+      
+      console.log(`🔍 Found ${allUserChannels.length} channel IDs from user database`);
+      
+      if (allUserChannels.length === 0) {
+        console.log('⚠️ No channel IDs found in user database');
+        return [];
+      }
+      
+      // Get live streams from user channels only
+      return await this.getChannelsLiveStreams(allUserChannels);
+    } catch (error) {
+      console.error('Error fetching live streams from all channels:', error);
+      return [];
+    }
   }
 
   static async getLiveStreamsForAllUsers(): Promise<StreamData[]> {
-    try {
-      const allChannels = await this.getAllUsersChannels();
-      return await this.getChannelsLiveStreams(allChannels);
-    } catch (error) {
-      console.error('Error fetching live streams for all users:', error);
-      return [];
-    }
+    console.warn('getLiveStreamsForAllUsers is deprecated. Use getLiveStreamsFromAllChannels instead.');
+    return await this.getLiveStreamsFromAllChannels();
   }
   
   static async getLiveStreamsForUser(userId: string): Promise<StreamData[]> {
     try {
-      const userChannels = await this.getUserChannels(userId);
+      const userChannels = await this.getCurrentUserChannelIds(userId);
       return await this.getChannelsLiveStreams(userChannels);
     } catch (error) {
       console.error('Error fetching live streams for user:', error);

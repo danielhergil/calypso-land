@@ -12,26 +12,20 @@ interface StreamData {
   id: string;
   title: string;
   channelName: string;
+  channelId?: string; // Channel ID for the stream
   viewers: number;
   thumbnail: string;
   category: string;
   isLive: boolean;
   duration: string;
   tags: string[];
-  videoId: string;
+  videoId: string; // Current live video ID or stream ID
   actualStartTime: string | null;
   description: string;
   isFeatured?: boolean;
 }
 
-// Test video IDs for development (fallback) - matching your database values
-const TEST_VIDEO_IDS = [
-  'VCWupbQE1Jw', // Your live stream (should be online)
-  'phi36uzvzD0', // From your database
-  'qwerty'       // From your database (might not work, but for testing)
-];
-
-// Set this to true to use real user data instead of test data
+// Always use real user data - no test fallbacks
 const USE_REAL_USER_DATA = true;
 
 const PublicHomepage: React.FC = () => {
@@ -59,16 +53,14 @@ const PublicHomepage: React.FC = () => {
         
         let streamsData: StreamData[] = [];
         
-        if (USE_REAL_USER_DATA) {
-          // Get live streams from ALL users using the new global collection
-          streamsData = await UserChannelsService.getLiveStreamsFromAllUsers();
-          
-          // If no live streams found, fall back to test video IDs as static content
-          if (streamsData.length === 0) {
-            streamsData = await UserChannelsService.getVideosAsStreams(TEST_VIDEO_IDS);
-          }
+        console.log('📡 Fetching live streams from all user channels...');
+        // Get live streams from ALL users using channel IDs from database
+        streamsData = await UserChannelsService.getLiveStreamsFromAllChannels();
+        
+        if (streamsData.length === 0) {
+          console.log('ℹ️ No live streams found from user channels at this time.');
         } else {
-          streamsData = await UserChannelsService.getVideosAsStreams(TEST_VIDEO_IDS);
+          console.log(`✅ Found ${streamsData.length} live streams from user channels.`);
         }
         
         // Mark first two as featured for demo
@@ -132,7 +124,7 @@ const PublicHomepage: React.FC = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
-        <LoadingSpinner size="large" message="Loading live streams from all channels..." />
+        <LoadingSpinner size="large" message="Loading live streams from channels..." />
       </div>
     );
   }

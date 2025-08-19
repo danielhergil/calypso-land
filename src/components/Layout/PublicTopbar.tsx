@@ -10,13 +10,14 @@ interface StreamData {
   id: string;
   title: string;
   channelName: string;
+  channelId?: string; // Channel ID for the stream
   viewers: number;
   thumbnail: string;
   category: string;
   isLive: boolean;
   duration: string;
   tags: string[];
-  videoId: string;
+  videoId: string; // Current live video ID or stream ID
   actualStartTime: string | null;
   description: string;
   isFeatured?: boolean;

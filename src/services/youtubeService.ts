@@ -1,6 +1,7 @@
 interface YouTubeMetadata {
   method: string;
-  videoId: string;
+  videoId: string; // For videos, this is the video ID. For channels, this could be the live video ID or channel ID
+  channelId?: string; // Channel ID (when fetching by channel)
   title: string;
   channelName: string;
   isLiveNow: boolean;
@@ -119,33 +120,110 @@ export class YouTubeService {
   
   static async getChannelMetadata(channelId: string): Promise<YouTubeResponse> {
     try {
+      // Check cache first (reuse the same cache as videos for simplicity)
+      const cached = globalCache.get(`channel:${channelId}`);
+      if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+        console.log(`Using cached data for channel: ${channelId}`);
+        return cached.data;
+      }
+
+      // Check if there's already a pending request for this channel
+      const pending = pendingRequests.get(`channel:${channelId}`);
+      if (pending) {
+        console.log(`Waiting for existing request for channel: ${channelId}`);
+        return await pending;
+      }
+
+      console.log(`Fetching cached metadata for channel: ${channelId}`);
+      
+      // Create and track the request promise
+      const requestPromise = this.fetchChannelData(channelId);
+      pendingRequests.set(`channel:${channelId}`, requestPromise);
+      
+      try {
+        const result = await requestPromise;
+        return result;
+      } finally {
+        // Clean up the pending request
+        pendingRequests.delete(`channel:${channelId}`);
+      }
+    } catch (error) {
+      console.error(`Error fetching channel metadata for ${channelId}:`, error);
+      throw error;
+    }
+  }
+
+  private static async fetchChannelData(channelId: string): Promise<YouTubeResponse> {
+    try {
       const response = await fetch(`${this.BASE_URL}/channel/${channelId}`);
       
       if (!response.ok) {
+        // Special handling for 400 errors (invalid channel IDs)
+        if (response.status === 400) {
+          throw new Error(`Invalid channel ID: ${channelId}`);
+        }
+        
+        console.error(`API Error: ${response.status} - ${response.statusText}`);
+        
+        // If we have cached data (even if expired), use it instead of failing
+        const cached = globalCache.get(`channel:${channelId}`);
+        if (cached) {
+          console.log(`Using expired cache data for channel: ${channelId} due to API error`);
+          return cached.data;
+        }
+        
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
       
-      return await response.json();
+      const data = await response.json();
+      
+      // Cache the successful response
+      globalCache.set(`channel:${channelId}`, { data, timestamp: Date.now() });
+      
+      console.log(`✅ Channel metadata received for ${channelId}:`, {
+        title: data.data?.title,
+        isLive: data.data?.isLiveNow,
+        viewers: data.data?.concurrentViewers,
+        duration: data.data?.liveDuration,
+        tags: data.data?.tags?.slice(0, 3)
+      });
+      return data;
     } catch (error) {
-      console.error('Error fetching channel metadata:', error);
+      // Don't spam console for invalid channel IDs
+      if (error.message.includes('Invalid channel ID')) {
+        throw error;
+      }
+      console.error(`Error in fetchChannelData for ${channelId}:`, error);
       throw error;
     }
   }
   
   static async getChannelsMetadata(channelIds: string[]): Promise<YouTubeResponse[]> {
-    const promises = channelIds.map(channelId => 
-      this.getChannelMetadata(channelId).catch(error => {
-        console.error(`Error fetching metadata for channel ${channelId}:`, error);
-        return null;
-      })
-    );
+    const results: YouTubeResponse[] = [];
     
-    const results = await Promise.allSettled(promises);
-    return results
-      .filter((result): result is PromiseFulfilledResult<YouTubeResponse> => 
-        result.status === 'fulfilled' && result.value !== null
-      )
-      .map(result => result.value);
+    // Process channels one by one to avoid overwhelming the server
+    for (const channelId of channelIds) {
+      try {
+        console.log(`Processing channel ${channelId}...`);
+        const response = await this.getChannelMetadata(channelId);
+        results.push(response);
+        
+        // Small delay to be respectful to the server (only if not cached)
+        if (channelIds.indexOf(channelId) < channelIds.length - 1) {
+          const wasCached = globalCache.has(`channel:${channelId}`) && 
+            Date.now() - globalCache.get(`channel:${channelId}`)!.timestamp < CACHE_DURATION;
+          if (!wasCached) {
+            await this.delay(500); // Increased delay to be more respectful
+          }
+        }
+      } catch (error) {
+        console.warn(`⚠️ Skipping invalid channel ID '${channelId}' - likely not a valid YouTube channel ID`);
+        // Continue with other channels even if one fails
+      }
+    }
+    
+    console.log(`Successfully fetched ${results.length} out of ${channelIds.length} channels`);
+    return results;
   }
   
   static async getVideosMetadata(videoIds: string[]): Promise<YouTubeResponse[]> {
