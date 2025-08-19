@@ -8,6 +8,7 @@ interface StreamData {
   id: string;
   title: string;
   channelName: string;
+  channelId?: string;
   viewers: number;
   thumbnail: string;
   category: string;

@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { ChatCleanupService } from './services/chatCleanupService';
 import LoginForm from './components/Auth/LoginForm';
 import Sidebar from './components/Layout/Sidebar';
 import Header from './components/Layout/Header';
@@ -113,6 +114,16 @@ const AppRoutes: React.FC = () => {
 };
 
 function App() {
+  // Initialize chat cleanup service when app starts
+  React.useEffect(() => {
+    ChatCleanupService.startCleanupService();
+    
+    // Cleanup on app unmount
+    return () => {
+      ChatCleanupService.stopCleanupService();
+    };
+  }, []);
+
   return (
     <ThemeProvider>
       <AuthProvider>
