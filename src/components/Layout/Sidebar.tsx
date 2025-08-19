@@ -1,7 +1,7 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Home, Settings, Users, LogOut, Shield, User } from 'lucide-react';
+import { Home, Settings, Users, LogOut, Shield, User, Play } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { motion } from 'framer-motion';
 
@@ -39,6 +39,17 @@ const Sidebar: React.FC = () => {
 
       {/* Navigation */}
       <nav className="flex-1 p-4">
+        {/* Back to Homepage */}
+        <div className="mb-4">
+          <Link
+            to="/"
+            className="flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 border border-gray-200 dark:border-gray-700"
+          >
+            <Play className="w-5 h-5" />
+            <span className="font-medium">Watch Live Streams</span>
+          </Link>
+        </div>
+
         <ul className="space-y-2">
           {navItems.map((item) => (
             <li key={item.path}>

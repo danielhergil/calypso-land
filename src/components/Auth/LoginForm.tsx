@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, ArrowLeft, Home } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
 const LoginForm: React.FC = () => {
@@ -45,6 +46,23 @@ const LoginForm: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md"
       >
+        {/* Back to Homepage Button */}
+        <motion.div 
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.1 }}
+          className="mb-6"
+        >
+          <Link
+            to="/"
+            className="inline-flex items-center space-x-2 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200 transition-colors group"
+          >
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+            <Home className="w-4 h-4" />
+            <span className="font-medium">Back to Homepage</span>
+          </Link>
+        </motion.div>
+
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8">
           {/* Logo and Title */}
           <div className="text-center mb-8">
@@ -138,6 +156,19 @@ const LoginForm: React.FC = () => {
               {t('auth.signInWithGoogle')}
             </span>
           </button>
+
+          {/* Just browsing? */}
+          <div className="mt-6 text-center">
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
+              Just want to watch live streams?
+            </p>
+            <Link
+              to="/"
+              className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200 font-medium hover:underline"
+            >
+              Continue as guest →
+            </Link>
+          </div>
         </div>
       </motion.div>
     </div>

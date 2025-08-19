@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { Play, Users, Star, TrendingUp } from 'lucide-react';
 import { UserChannelsService } from '../services/userChannelsService';
-import { firestoreService } from '../firebase/services';
 import StreamCard from '../components/LiveStreams/StreamCard';
 import LoadingSpinner from '../components/LiveStreams/LoadingSpinner';
 import { useAuth } from '../contexts/AuthContext';
+import PublicTopbar from '../components/Layout/PublicTopbar';
 
 interface StreamData {
   id: string;
@@ -36,9 +36,10 @@ const USE_REAL_USER_DATA = true;
 
 const PublicHomepage: React.FC = () => {
   const { t } = useTranslation();
-  const { user } = useAuth();
   const [streams, setStreams] = useState<StreamData[]>([]);
+  const [filteredStreamsBySearch, setFilteredStreamsBySearch] = useState<StreamData[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
+  const [searchQuery, setSearchQuery] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastLoadTime, setLastLoadTime] = useState<number>(0);
@@ -77,6 +78,7 @@ const PublicHomepage: React.FC = () => {
         }));
         
         setStreams(streamsWithFeatured);
+        setFilteredStreamsBySearch(streamsWithFeatured);
       } catch (err) {
         console.error('Error loading streams:', err);
         setError('Failed to load live streams. Please try again later.');
@@ -88,13 +90,44 @@ const PublicHomepage: React.FC = () => {
     loadStreams();
   }, [lastLoadTime]);
 
+  // Handle search functionality
+  const handleSearch = useCallback((query: string) => {
+    setSearchQuery(query);
+    
+    if (!query || !query.trim()) {
+      setFilteredStreamsBySearch(streams);
+      return;
+    }
+
+    const searchTerms = query.toLowerCase().split(' ').filter(term => term.length > 0);
+    
+    const filtered = streams.filter(stream => {
+      const searchableText = [
+        stream.title,
+        stream.channelName,
+        stream.description,
+        ...stream.tags
+      ].join(' ').toLowerCase();
+
+      return searchTerms.every(term => searchableText.includes(term));
+    });
+
+    setFilteredStreamsBySearch(filtered);
+  }, [streams]);
+
+  // Update filtered streams when search changes
+  useEffect(() => {
+    handleSearch(searchQuery);
+  }, [handleSearch, searchQuery]);
+
   const categories = ['All', 'Music', 'Entertainment', 'Gaming', 'Education', 'News'];
 
+  // Apply both search and category filters
   const filteredStreams = selectedCategory === 'All' 
-    ? streams 
-    : streams.filter(stream => stream.category === selectedCategory);
+    ? filteredStreamsBySearch 
+    : filteredStreamsBySearch.filter(stream => stream.category === selectedCategory);
 
-  const featuredStreams = streams.filter(stream => stream.isFeatured);
+  const featuredStreams = filteredStreamsBySearch.filter(stream => stream.isFeatured);
 
   if (loading) {
     return (
@@ -124,6 +157,7 @@ const PublicHomepage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
+      <PublicTopbar streams={streams} onSearch={handleSearch} />
       {/* Hero Section */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
@@ -166,6 +200,31 @@ const PublicHomepage: React.FC = () => {
           </div>
         </div>
       </motion.div>
+
+      {/* Search Results Header */}
+      {searchQuery && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+          <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 mb-6">
+            <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100">
+              Search Results for "{searchQuery}"
+            </h3>
+            <p className="text-blue-700 dark:text-blue-300 text-sm">
+              Found {filteredStreamsBySearch.length} stream{filteredStreamsBySearch.length !== 1 ? 's' : ''}
+              {filteredStreamsBySearch.length === 0 && (
+                <span className="ml-2">- Try searching for channel names or tags like "music", "gaming", "lofi"</span>
+              )}
+            </p>
+            {searchQuery && (
+              <button 
+                onClick={() => handleSearch('')}
+                className="mt-2 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200 underline"
+              >
+                Clear search and show all streams
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Categories */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

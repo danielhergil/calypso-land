@@ -2,11 +2,13 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Moon, Sun, Globe } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { motion } from 'framer-motion';
 
 const Header: React.FC = () => {
   const { t, i18n } = useTranslation();
   const { isDark, toggleTheme } = useTheme();
+  const { user } = useAuth();
 
   const languages = [
     { code: 'en', name: 'English' },
@@ -26,7 +28,17 @@ const Header: React.FC = () => {
       animate={{ y: 0, opacity: 1 }}
       className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-700 px-6 py-4"
     >
-      <div className="flex items-center justify-end space-x-4">
+      <div className="flex items-center justify-between w-full">
+        {/* User Welcome */}
+        <div className="flex items-center space-x-3">
+          <div className="text-gray-700 dark:text-gray-300">
+            <span className="text-sm text-gray-500 dark:text-gray-400">Welcome back,</span>
+            <p className="font-semibold">{user?.displayName || user?.email || 'Creator'}</p>
+          </div>
+        </div>
+
+        {/* Right Side Controls */}
+        <div className="flex items-center space-x-4">
         {/* Language Selector */}
         <div className="relative group">
           <button className="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
@@ -60,6 +72,7 @@ const Header: React.FC = () => {
             <Moon className="w-5 h-5 text-gray-600" />
           )}
         </button>
+        </div>
       </div>
     </motion.header>
   );

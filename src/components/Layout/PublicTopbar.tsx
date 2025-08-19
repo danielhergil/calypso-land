@@ -1,13 +1,36 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Search, User, Globe, Sun, Moon } from 'lucide-react';
+import { User, Globe, Sun, Moon } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useAuth } from '../../contexts/AuthContext';
+import SearchWithSuggestions from '../Search/SearchWithSuggestions';
 
-const PublicTopbar: React.FC = () => {
-  const { t, i18n } = useTranslation();
+interface StreamData {
+  id: string;
+  title: string;
+  channelName: string;
+  viewers: number;
+  thumbnail: string;
+  category: string;
+  isLive: boolean;
+  duration: string;
+  tags: string[];
+  videoId: string;
+  actualStartTime: string | null;
+  description: string;
+  isFeatured?: boolean;
+}
+
+interface PublicTopbarProps {
+  streams?: StreamData[];
+  onSearch?: (query: string) => void;
+}
+
+const PublicTopbar: React.FC<PublicTopbarProps> = ({ streams = [], onSearch }) => {
+  const { i18n } = useTranslation();
   const { isDark, toggleTheme } = useTheme();
-  const [searchQuery, setSearchQuery] = useState('');
+  const { user } = useAuth();
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
 
   const languages = [
@@ -40,23 +63,17 @@ const PublicTopbar: React.FC = () => {
           </Link>
 
           {/* Search Bar */}
-          <div className="flex-1 max-w-lg mx-8">
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-5 w-5 text-gray-400" />
-              </div>
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg leading-5 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Search live streams, streamers, or sports..."
-              />
-            </div>
+          <div className="flex-1 max-w-lg mx-4 md:mx-8">
+            <SearchWithSuggestions
+              streams={streams}
+              onSearchChange={onSearch || (() => {})}
+              placeholder="Search streams, channels..."
+              className="w-full"
+            />
           </div>
 
           {/* Right Side Actions */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 md:space-x-4">
             {/* Language Selector */}
             <div className="relative">
               <button
@@ -92,14 +109,24 @@ const PublicTopbar: React.FC = () => {
               {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </button>
 
-            {/* Login to Dashboard Button */}
-            <Link
-              to="/dashboard"
-              className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium"
-            >
-              <User className="w-4 h-4" />
-              <span>Creator Dashboard</span>
-            </Link>
+            {/* Navigation Buttons */}
+            {user ? (
+              <Link
+                to="/dashboard"
+                className="flex items-center space-x-1 md:space-x-2 bg-blue-600 text-white px-3 md:px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm md:text-base"
+              >
+                <User className="w-4 h-4" />
+                <span className="hidden sm:inline">Dashboard</span>
+              </Link>
+            ) : (
+              <Link
+                to="/dashboard"
+                className="flex items-center space-x-1 md:space-x-2 bg-blue-600 text-white px-3 md:px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm md:text-base"
+              >
+                <User className="w-4 h-4" />
+                <span className="hidden sm:inline">Login</span>
+              </Link>
+            )}
           </div>
         </div>
       </div>

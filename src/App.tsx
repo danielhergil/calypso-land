@@ -6,7 +6,6 @@ import { ThemeProvider } from './contexts/ThemeContext';
 import LoginForm from './components/Auth/LoginForm';
 import Sidebar from './components/Layout/Sidebar';
 import Header from './components/Layout/Header';
-import PublicTopbar from './components/Layout/PublicTopbar';
 import PublicHomepage from './pages/PublicHomepage';
 import StreamViewer from './pages/StreamViewer';
 import Dashboard from './pages/Dashboard';
@@ -15,18 +14,6 @@ import Teams from './pages/Teams';
 import Profile from './pages/Profile';
 import Admin from './pages/Admin';
 import './i18n';
-
-// Public Layout Component
-const PublicLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
-      <PublicTopbar />
-      <main>
-        {children}
-      </main>
-    </div>
-  );
-};
 
 // Dashboard Layout Component (Private/Protected)
 interface ProtectedRouteProps {
@@ -66,16 +53,13 @@ const DashboardLayout: React.FC<ProtectedRouteProps> = ({ children, adminOnly = 
   );
 };
 
+
 const AppRoutes: React.FC = () => {
   return (
     <Router>
       <Routes>
         {/* Public Routes */}
-        <Route path="/" element={
-          <PublicLayout>
-            <PublicHomepage />
-          </PublicLayout>
-        } />
+        <Route path="/" element={<PublicHomepage />} />
         <Route path="/stream/:streamId" element={<StreamViewer />} />
         
         {/* Dashboard Routes (Protected) */}
