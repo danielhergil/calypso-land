@@ -5,7 +5,6 @@ import { Play, Users, Star, TrendingUp } from 'lucide-react';
 import { UserChannelsService } from '../services/userChannelsService';
 import StreamCard from '../components/LiveStreams/StreamCard';
 import LoadingSpinner from '../components/LiveStreams/LoadingSpinner';
-import { useAuth } from '../contexts/AuthContext';
 import PublicTopbar from '../components/Layout/PublicTopbar';
 
 interface StreamData {
@@ -25,8 +24,6 @@ interface StreamData {
   isFeatured?: boolean;
 }
 
-// Always use real user data - no test fallbacks
-const USE_REAL_USER_DATA = true;
 
 const PublicHomepage: React.FC = () => {
   const { t } = useTranslation();
@@ -124,7 +121,7 @@ const PublicHomepage: React.FC = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
-        <LoadingSpinner size="large" message="Loading live streams from channels..." />
+        <LoadingSpinner size="large" message="Fetching live streams from all channels..." />
       </div>
     );
   }

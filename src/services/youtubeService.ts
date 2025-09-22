@@ -29,13 +29,36 @@ interface YouTubeResponse {
   timestamp: string;
 }
 
+interface BatchChannelResult {
+  isLive: boolean;
+  liveVideoId: string | null;
+  videoData: YouTubeMetadata | null;
+  videoError: string | null;
+  method: string;
+  error?: string | null;
+}
+
+interface BatchChannelsResponse {
+  success: boolean;
+  results: Record<string, BatchChannelResult>;
+  summary: {
+    total: number;
+    live: number;
+    notLive: number;
+    errors: number;
+    videoDataFetched: number;
+  };
+  quotaUsed: number;
+  timestamp: string;
+}
+
 // Global cache and request tracking outside the class to persist across instances
 const globalCache = new Map<string, { data: YouTubeResponse; timestamp: number }>();
 const pendingRequests = new Map<string, Promise<YouTubeResponse>>();
 const CACHE_DURATION = 30000; // 30 seconds cache
 
 export class YouTubeService {
-  private static readonly BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api/youtube';
+  private static readonly BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://calypso-land-back-production.up.railway.app/api/status';
   
 
   static async getVideoMetadata(videoId: string): Promise<YouTubeResponse> {
@@ -199,29 +222,144 @@ export class YouTubeService {
   }
   
   static async getChannelsMetadata(channelIds: string[]): Promise<YouTubeResponse[]> {
+    // Use the new batch API for better performance
+    return await this.getChannelsMetadataBatch(channelIds);
+  }
+
+  static async getChannelsMetadataBatch(channelIds: string[]): Promise<YouTubeResponse[]> {
+    if (channelIds.length === 0) return [];
+
+    try {
+      console.log(`📡 Fetching metadata for ${channelIds.length} channels using batch API...`);
+
+      // Check cache for all channels first
+      const results: YouTubeResponse[] = [];
+      const uncachedChannelIds: string[] = [];
+
+      for (const channelId of channelIds) {
+        const cached = globalCache.get(`channel:${channelId}`);
+        if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+          console.log(`Using cached data for channel: ${channelId}`);
+          results.push(cached.data);
+        } else {
+          uncachedChannelIds.push(channelId);
+        }
+      }
+
+      // If all channels are cached, return cached results
+      if (uncachedChannelIds.length === 0) {
+        console.log(`✅ All ${channelIds.length} channels found in cache`);
+        return results;
+      }
+
+      console.log(`🔄 Fetching ${uncachedChannelIds.length} uncached channels from batch API...`);
+
+      const response = await fetch(`${this.BASE_URL}/batch/channels`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          channelIds: uncachedChannelIds
+        })
+      });
+
+      if (!response.ok) {
+        console.error(`Batch API Error: ${response.status} - ${response.statusText}`);
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const batchData: BatchChannelsResponse = await response.json();
+
+      if (!batchData.success) {
+        throw new Error('Batch API returned unsuccessful response');
+      }
+
+      console.log(`✅ Batch API response:`, {
+        total: batchData.summary.total,
+        live: batchData.summary.live,
+        notLive: batchData.summary.notLive,
+        errors: batchData.summary.errors
+      });
+
+      // Convert batch results to individual responses and cache them
+      for (const channelId of uncachedChannelIds) {
+        const channelResult = batchData.results[channelId];
+
+        if (channelResult && channelResult.isLive && channelResult.videoData) {
+          // Channel is live - create successful response
+          const youtubeResponse: YouTubeResponse = {
+            success: true,
+            data: channelResult.videoData,
+            cached: false,
+            timestamp: batchData.timestamp
+          };
+
+          // Cache the response
+          globalCache.set(`channel:${channelId}`, {
+            data: youtubeResponse,
+            timestamp: Date.now()
+          });
+
+          results.push(youtubeResponse);
+        } else if (channelResult && !channelResult.isLive) {
+          // Channel is not live - create a response indicating this
+          const youtubeResponse: YouTubeResponse = {
+            success: false,
+            data: {} as YouTubeMetadata, // Channel not live, no data
+            cached: false,
+            timestamp: batchData.timestamp
+          };
+
+          // Cache the response for a shorter time since channels can go live
+          globalCache.set(`channel:${channelId}`, {
+            data: youtubeResponse,
+            timestamp: Date.now()
+          });
+
+          // Don't add non-live channels to results as they won't be displayed
+        } else {
+          // Channel has error or no result
+          console.warn(`⚠️ Channel ${channelId} has error or no result in batch response`);
+        }
+      }
+
+      console.log(`✅ Successfully processed ${results.length} channels (${results.length - (channelIds.length - uncachedChannelIds.length)} from API, ${channelIds.length - uncachedChannelIds.length} from cache)`);
+      return results;
+
+    } catch (error) {
+      console.error('Error in batch channels API:', error);
+
+      // Fallback to individual API calls if batch fails
+      console.log('🔄 Falling back to individual channel API calls...');
+      return await this.getChannelsMetadataFallback(channelIds);
+    }
+  }
+
+  static async getChannelsMetadataFallback(channelIds: string[]): Promise<YouTubeResponse[]> {
     const results: YouTubeResponse[] = [];
-    
+
     // Process channels one by one to avoid overwhelming the server
     for (const channelId of channelIds) {
       try {
         console.log(`Processing channel ${channelId}...`);
         const response = await this.getChannelMetadata(channelId);
         results.push(response);
-        
+
         // Small delay to be respectful to the server (only if not cached)
         if (channelIds.indexOf(channelId) < channelIds.length - 1) {
-          const wasCached = globalCache.has(`channel:${channelId}`) && 
+          const wasCached = globalCache.has(`channel:${channelId}`) &&
             Date.now() - globalCache.get(`channel:${channelId}`)!.timestamp < CACHE_DURATION;
           if (!wasCached) {
             await this.delay(500); // Increased delay to be more respectful
           }
         }
-      } catch (error) {
+      } catch {
         console.warn(`⚠️ Skipping invalid channel ID '${channelId}' - likely not a valid YouTube channel ID`);
         // Continue with other channels even if one fails
       }
     }
-    
+
     console.log(`Successfully fetched ${results.length} out of ${channelIds.length} channels`);
     return results;
   }
@@ -244,7 +382,7 @@ export class YouTubeService {
             await this.delay(500); // Increased delay to be more respectful
           }
         }
-      } catch (error) {
+      } catch {
         console.warn(`⚠️ Skipping invalid video ID '${videoId}' - likely not a valid YouTube video ID`);
         // Continue with other videos even if one fails
       }

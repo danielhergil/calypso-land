@@ -90,7 +90,7 @@ export class UserChannelsService {
               allChannelIds.push(...userChannelIds);
               console.log(`📝 User ${user.id} has ${userChannelIds.length} channel IDs`);
             }
-          } catch (error) {
+          } catch {
             console.warn(`⚠️ Failed to get channel IDs for user ${user.id}`);
             // Continue with other users
           }
