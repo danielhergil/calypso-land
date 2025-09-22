@@ -68,7 +68,7 @@ const LoginForm: React.FC = () => {
           <div className="text-center mb-8">
             <div className="flex justify-center mb-4">
               <img 
-                src="/public/CALYPSO_LOGO_TRANSP.png" 
+                src="/CALYPSO_LOGO_TRANSP.png" 
                 alt="Calypso" 
                 className="w-16 h-16"
               />

@@ -27,7 +27,7 @@ const Sidebar: React.FC = () => {
       <div className="p-6 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center space-x-3">
           <img 
-            src="/public/CALYPSO_LOGO_TRANSP.png" 
+            src="/CALYPSO_LOGO_TRANSP.png" 
             alt="Calypso" 
             className="w-10 h-10"
           />

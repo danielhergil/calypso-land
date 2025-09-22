@@ -54,7 +54,7 @@ const PublicTopbar: React.FC<PublicTopbarProps> = ({ streams = [], onSearch }) =
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-3">
             <img 
-              src="/public/CALYPSO_LOGO_TRANSP.png" 
+              src="/CALYPSO_LOGO_TRANSP.png" 
               alt="Calypso" 
               className="w-8 h-8"
             />
