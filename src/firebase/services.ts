@@ -48,14 +48,31 @@ export const firestoreService = {
   async getUserTeams(userId: string): Promise<Team[]> {
     const teamsRef = collection(db, 'users', userId, 'teams');
     const snapshot = await getDocs(teamsRef);
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Team & { id: string }));
+    return snapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        ...data,
+        // Convert Timestamp to localized string format if it exists
+        createdAt: data.createdAt?.toDate ?
+          data.createdAt.toDate().toLocaleDateString('es-ES', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            timeZoneName: 'short'
+          }) : data.createdAt
+      } as Team & { id: string };
+    });
   },
 
   async addUserTeam(userId: string, team: Omit<Team, 'createdAt'>): Promise<void> {
     const teamsRef = collection(db, 'users', userId, 'teams');
     await addDoc(teamsRef, {
       ...team,
-      createdAt: Timestamp.now().toDate().toISOString()
+      createdAt: Timestamp.now()
     });
   },
 
